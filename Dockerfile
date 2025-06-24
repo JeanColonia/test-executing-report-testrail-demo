@@ -27,7 +27,12 @@ RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor
     > /etc/apt/sources.list.d/google-chrome.list
 
 # Instalar Google Chrome
-RUN apt-get update && apt-get install -y google-chrome-stable
+#RUN apt-get update && apt-get install -y google-chrome-stable
+# Chrome 137 específicamente
+RUN wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_137.0.0.0-1_amd64.deb \
+    && apt install -y ./google-chrome-stable_137.0.0.0-1_amd64.deb \
+    && rm google-chrome-stable_137.0.0.0-1_amd64.deb
+
 
 # Limpieza para reducir peso de la imagen
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
