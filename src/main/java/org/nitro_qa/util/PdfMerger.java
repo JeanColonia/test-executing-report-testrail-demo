@@ -28,7 +28,7 @@ public class PdfMerger {
     public static byte[] generateAndMergePdfs(String textExecutionUrl) throws IOException {
 
         ChromeOptions chromeOptions = new ChromeOptions();
-        chromeOptions.addArguments("--headless", "--disable-gpu", "--no-sandbox", "window-size=1920,1080");
+        chromeOptions.addArguments("--headless", "--disable-gpu", "--no-sandbox", "window-size=1920,1080", "--disable-dev-shm-usage", "--blink-settings=imagesEnabled=false");
         ChromeDriver driver = new ChromeDriver(chromeOptions);
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
