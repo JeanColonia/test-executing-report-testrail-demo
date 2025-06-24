@@ -1,47 +1,44 @@
-# Etapa 1: Construcción del JAR usando Maven Wrapper
 FROM eclipse-temurin:17-jdk as builder
-
 WORKDIR /app
-
-# Copia del wrapper y archivos de proyecto
 COPY . .
-
-# Si usas Maven Wrapper, asegúrate de tener ./mvnw y .mvn/
 RUN chmod +x mvnw && ./mvnw clean package -DskipTests
 
-# Etapa 2: Imagen final con Chrome y dependencias
-FROM eclipse-temurin:17-jdk
+# Etapa final usando Ubuntu como base
+FROM ubuntu:22.04
 
-# Instalar dependencias requeridas por Chrome y Selenium
+ENV CHROME_VERSION=123.0.6312.86
 
-RUN apt-get update && apt-get install -y wget unzip curl gnupg ca-certificates \
-    fonts-liberation libasound2 libatk-bridge2.0-0 \
-    libatk1.0-0 libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 \
-    libnspr4 libnss3 libx11-xcb1 libxcomposite1 libxdamage1 \
-    libxrandr2 xdg-utils --no-install-recommends || cat /var/log/apt/term.log
+# Instala Java
+RUN apt-get update && apt-get install -y openjdk-17-jdk wget unzip curl ca-certificates
+
+# Instala dependencias de Chrome
+RUN apt-get update && apt-get install -y \
+    wget unzip curl gnupg ca-certificates \
+    libnss3 libxss1 libatk-bridge2.0-0 libx11-xcb1 \
+    libxcomposite1 libxdamage1 libxrandr2 libasound2 \
+    libgtk-3-0 libdbus-glib-1-2 libxtst6 libxext6 libxi6 \
+    libgbm1 fonts-liberation xdg-utils --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
 
-# Agregar la clave y repo de Google Chrome
-RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-linux-signing-keyring.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-signing-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
-    > /etc/apt/sources.list.d/google-chrome.list
-
-# Instalar Google Chrome
-#RUN apt-get update && apt-get install -y google-chrome-stable
-RUN wget https://storage.googleapis.com/chrome-for-testing-public/123.0.6312.86/linux64/chrome-linux64.zip && \
+# Instala Chrome
+RUN wget https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chrome-linux64.zip && \
     unzip chrome-linux64.zip && \
     mv chrome-linux64 /opt/chrome && \
     ln -s /opt/chrome/chrome /usr/bin/google-chrome && \
     rm chrome-linux64.zip
 
-# Limpiar caché de apt (en un bloque separado)
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# Instala ChromeDriver
+RUN wget https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chromedriver-linux64.zip && \
+    unzip chromedriver-linux64.zip && \
+    mv chromedriver-linux64/chromedriver /usr/bin/chromedriver && \
+    chmod +x /usr/bin/chromedriver && \
+    rm -rf chromedriver-linux64*
 
-# Directorio de trabajo
+# Variables de entorno
+ENV CHROME_BIN=/usr/bin/google-chrome
+ENV PATH=$PATH:/usr/bin
+
 WORKDIR /app
-
-# Copiar el JAR desde la etapa de construcción
 COPY --from=builder /app/target/*.jar app.jar
-
-# Comando para ejecutar el servicio
 ENTRYPOINT ["java", "-jar", "app.jar"]
