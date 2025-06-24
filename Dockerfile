@@ -1,11 +1,25 @@
-# Base image con Java 17
+# ------------------------------
+# Etapa 1: Build de la aplicación
+# ------------------------------
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
+
+WORKDIR /app
+COPY . .
+
+# Compila el proyecto sin correr los tests
+RUN mvn clean package -DskipTests
+
+
+# ------------------------------
+# Etapa 2: Imagen de ejecución
+# ------------------------------
 FROM eclipse-temurin:17-jdk
 
-# Instala utilidades y Google Chrome
+# Instala utilidades necesarias y Google Chrome
 RUN apt-get update && apt-get install -y \
     wget \
-    curl \
     unzip \
+    curl \
     gnupg \
     ca-certificates \
     fonts-liberation \
@@ -23,24 +37,22 @@ RUN apt-get update && apt-get install -y \
     libxdamage1 \
     libxrandr2 \
     xdg-utils \
-    --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
-
-# Descarga Google Chrome estable
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && apt-get install -y google-chrome-stable --no-install-recommends && \
+    --no-install-recommends && \
+    wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list' && \
+    apt-get update && \
+    apt-get install -y google-chrome-stable && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Setea variables de entorno para Chrome headless
-ENV CHROME_BIN=/usr/bin/google-chrome
-ENV CHROME_PATH=/usr/bin/google-chrome
+# Establece el directorio de trabajo
+WORKDIR /app
 
-# Copia el JAR generado en target/
-COPY target/test-executing-report-testrail-demo-1.0-SNAPSHOT.jar app.jar
+# Copia el .jar generado en la etapa anterior
+COPY --from=builder /app/target/*.jar app.jar
 
-# Expone el puerto que usas en Spring Boot
+# Expone el puerto que usará la app
 EXPOSE 8080
 
-# Comando de arranque
-ENTRYPOINT ["java","-jar","/app.jar"]
+# Comando para ejecutar la aplicación
+ENTRYPOINT ["java", "-jar", "app.jar"]
