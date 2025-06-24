@@ -32,9 +32,9 @@ RUN wget https://storage.googleapis.com/chrome-for-testing-public/123.0.6312.86/
     unzip chrome-linux64.zip && \
     mv chrome-linux64 /opt/chrome && \
     ln -s /opt/chrome/chrome /usr/bin/google-chrome && \
-    rm chrome-linux64.zip \
+    rm chrome-linux64.zip
 
-# Limpieza para reducir peso de la imagen
+# Limpiar caché de apt (en un bloque separado)
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Directorio de trabajo
