@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: test-executing-report
+    env: java
+    buildCommand: ./mvnw clean package
+    startCommand: java -jar target/test-executing-report-testrail-demo-1.0-SNAPSHOT.jar
+    plan: free
