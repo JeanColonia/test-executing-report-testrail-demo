@@ -9,8 +9,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry){
-        registry.addMapping("/api/**")
-                .allowedOrigins("https://qa-squad-report-generator.netlify.app", "https://qa-squad-report-generator.netlify.app/")
+        registry.addMapping("/**")
+               .allowedOrigins("http://localhost:4200", "https://qa-squad-report-generator.netlify.app", "https://qa-squad-report-generator.netlify.app/")
                 .allowedMethods("GET", "POST", "PUT", "DELETE")
                 .allowedHeaders("*")
                 .allowCredentials(true);

@@ -23,14 +23,14 @@ public class PdfServiceTest {
 
             // Ejecutar generación de PDF
             ReporterService service = new ReporterService();
-            byte[] pdfBytes = service.generateAndMergerPdfService(dto);
+            // byte[] pdfBytes = service.generateAndMergerPdfService(dto);
 
             // Guardar resultado en archivo
             File output = new File("output/merged.pdf");
             output.getParentFile().mkdirs(); // Crear directorios si no existen
 
             try (FileOutputStream fos = new FileOutputStream(output)) {
-                fos.write(pdfBytes);
+                //fos.write(pdfBytes);
                 System.out.println("PDF generado: " + output.getAbsolutePath());
             }
 
