@@ -6,46 +6,42 @@ WORKDIR /app
 # Copia del wrapper y archivos de proyecto
 COPY . .
 
-# Compilación del proyecto (omite tests)
+# Si usas Maven Wrapper, asegúrate de tener ./mvnw y .mvn/
 RUN chmod +x mvnw && ./mvnw clean package -DskipTests
 
-# Etapa 2: Imagen final con Chrome 123 y dependencias
+# Etapa 2: Imagen final con Chrome y dependencias
 FROM eclipse-temurin:17-jdk
 
-ENV CHROME_VERSION=123.0.6312.86
+# Instalar dependencias requeridas por Chrome y Selenium
 
-# Instalar dependencias necesarias para Chrome y Selenium
-RUN apt-get update && apt-get install -y \
-    wget unzip curl gnupg ca-certificates \
+RUN apt-get update && apt-get install -y wget unzip curl gnupg ca-certificates \
     fonts-liberation libasound2 libatk-bridge2.0-0 \
     libatk1.0-0 libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 \
     libnspr4 libnss3 libx11-xcb1 libxcomposite1 libxdamage1 \
-    libxrandr2 xdg-utils libxss1 libgtk-3-0 libxi6 libxtst6 libxext6 libxfixes3 libudev1 \
-    --no-install-recommends && rm -rf /var/lib/apt/lists/*
+    libxrandr2 xdg-utils --no-install-recommends || cat /var/log/apt/term.log
 
-# Instalar Chrome 123
-RUN wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/${CHROME_VERSION}/linux64/chrome-linux64.zip && \
+
+# Agregar la clave y repo de Google Chrome
+RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-linux-signing-keyring.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-signing-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" \
+    > /etc/apt/sources.list.d/google-chrome.list
+
+# Instalar Google Chrome
+#RUN apt-get update && apt-get install -y google-chrome-stable
+RUN wget https://storage.googleapis.com/chrome-for-testing-public/123.0.6312.86/linux64/chrome-linux64.zip && \
     unzip chrome-linux64.zip && \
     mv chrome-linux64 /opt/chrome && \
     ln -s /opt/chrome/chrome /usr/bin/google-chrome && \
-    rm chrome-linux64.zip
+    rm chrome-linux64.zip \
 
-# Instalar ChromeDriver 123
-RUN wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/${CHROME_VERSION}/linux64/chromedriver-linux64.zip && \
-    unzip chromedriver-linux64.zip && \
-    mv chromedriver-linux64/chromedriver /usr/bin/chromedriver && \
-    chmod +x /usr/bin/chromedriver && \
-    rm -rf chromedriver-linux64*
+# Limpieza para reducir peso de la imagen
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Establecer variables de entorno necesarias
-ENV CHROME_BIN=/usr/bin/google-chrome
-ENV PATH=$PATH:/usr/bin
-
-# Crear directorio de trabajo
+# Directorio de trabajo
 WORKDIR /app
 
 # Copiar el JAR desde la etapa de construcción
 COPY --from=builder /app/target/*.jar app.jar
 
-# Ejecutar la aplicación Spring Boot
+# Comando para ejecutar el servicio
 ENTRYPOINT ["java", "-jar", "app.jar"]
