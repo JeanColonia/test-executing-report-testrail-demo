@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copiamos todo el contenido y construimos el JAR
 COPY . .
-RUN ./mvnw clean package -DskipTests
+RUN chmod +x mvnw && ./mvnw clean package -DskipTests
 
 # Etapa 2: Imagen final con Chrome y entorno de ejecución
 FROM eclipse-temurin:17-jdk
