@@ -2,6 +2,8 @@ package org.nitro_qa.service;
 
 import org.nitro_qa.dto.PdfRequestDTO;
 import org.nitro_qa.util.PdfMerger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -18,10 +20,13 @@ public class ReporterService {
     private final ConcurrentHashMap<String, String> jobStatus = new ConcurrentHashMap<>();
     private final String outputFolder = "/tmp";
 
+    @Autowired
+    private ApplicationContext context;
+
     public String submitJob(PdfRequestDTO requestDto) {
         String jobId = UUID.randomUUID().toString();
         jobStatus.put(jobId, "PENDING");
-        processInBackground(jobId, requestDto.getUrl());
+        context.getBean(ReporterService.class).processInBackground(jobId, requestDto.getUrl());
         return jobId;
     }
 
