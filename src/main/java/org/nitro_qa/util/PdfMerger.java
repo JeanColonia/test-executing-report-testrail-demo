@@ -28,7 +28,7 @@ public class PdfMerger {
     public static byte[] generateAndMergePdfs(String textExecutionUrl) throws IOException {
 
         ChromeOptions chromeOptions = new ChromeOptions();
-        chromeOptions.addArguments("--headless", "--disable-gpu", "--no-sandbox", "window-size=1920,1080", "--disable-dev-shm-usage", "--blink-settings=imagesEnabled=false");
+        chromeOptions.addArguments("--headless", "--disable-gpu", "--no-sandbox", "window-size=1920,1080", "--disable-dev-shm-usage");
         ChromeDriver driver = new ChromeDriver(chromeOptions);
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
@@ -119,9 +119,10 @@ public class PdfMerger {
     }
 
     private static void Login(WebDriver driver, String username, String password){
-        WebElement usernameInput = driver.findElement(By.id("name"));
-        WebElement passInput = driver.findElement(By.id("password"));
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement usernameInput = wait.until(ExpectedConditions.elementToBeClickable(By.id("name")));
+        WebElement passInput = wait.until(ExpectedConditions.elementToBeClickable(By.id("password")));
+
         usernameInput.sendKeys(username);
         passInput.sendKeys(password);
         WebElement button = wait.until(ExpectedConditions.elementToBeClickable(By.id("button_primary")));
