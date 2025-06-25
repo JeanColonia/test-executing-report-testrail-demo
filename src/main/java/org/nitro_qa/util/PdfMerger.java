@@ -121,11 +121,11 @@ public class PdfMerger {
     private static void Login(WebDriver driver, String username, String password){
         WebElement usernameInput = driver.findElement(By.id("name"));
         WebElement passInput = driver.findElement(By.id("password"));
-        WebElement logInBtn = driver.findElement(By.id("button_primary"));
-
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         usernameInput.sendKeys(username);
         passInput.sendKeys(password);
-        logInBtn.click();
+        WebElement button = wait.until(ExpectedConditions.elementToBeClickable(By.id("button_primary")));
+        button.click();
     }
 
     private static void mergePDFs(List<String> pdfPaths, String outputPath) throws IOException {

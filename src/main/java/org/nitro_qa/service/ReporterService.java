@@ -47,7 +47,7 @@ public class ReporterService {
 
     // Consulta el estado actual del job
     public String getStatus(String jobId) {
-        return jobStatus.getOrDefault(jobId, "NOT_FOUND");
+        return jobStatus.getOrDefault(jobId, "PROCESSING");
     }
 
     // Devuelve el contenido binario del PDF generado
