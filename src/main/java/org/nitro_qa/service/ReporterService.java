@@ -25,7 +25,8 @@ public class ReporterService {
         return jobId;
     }
 
-    @Async
+
+    @Async("pdfExecutor")
     public void processInBackground(String jobId, String url) {
         try {
             byte[] result = PdfMerger.generateAndMergePdfs(url);
@@ -39,10 +40,12 @@ public class ReporterService {
         }
     }
 
+    // Consulta el estado actual del job
     public String getStatus(String jobId) {
         return jobStatus.getOrDefault(jobId, "NOT_FOUND");
     }
 
+    // Devuelve el contenido binario del PDF generado
     public byte[] getPdf(String jobId) throws IOException {
         File file = new File(getPdfPath(jobId));
         if (!file.exists()) {
@@ -51,6 +54,8 @@ public class ReporterService {
         return java.nio.file.Files.readAllBytes(file.toPath());
     }
 
+
+    // Obtiene la ruta completa del archivo PDF
     private String getPdfPath(String jobId) {
         return outputFolder + File.separator + jobId + ".pdf";
     }
